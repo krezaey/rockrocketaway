@@ -3,14 +3,16 @@ let canvas = {
     width: 1000,
     halfWidth: 1000 / 2
   },
-  stageHeight = 350,
+  background = { stageHeight: 350, grassHeight: canvas.height },
   rocket = {
     height: 100,
     left: canvas.width / 2 - 50,
     right: canvas.width / 2 + 50,
-    bottom: stageHeight - 70
+    bottom: background.stageHeight - 70
   },
-  cloud = {diameter: 40};
+  cloud = { diameter: 40, speed: 0.075 },
+  movingValue = { clouds: 0, grass: 0 },
+  increasingSpeed = { clouds: 60 };
 
 function setup() {
   createCanvas(canvas.width, canvas.height);
@@ -19,23 +21,28 @@ function setup() {
 
 function draw() {
   drawScene();
-  drawMultipleClouds(0.5);
+  drawMultipleClouds(cloud.speed);
+  drawFlames();
   drawStage();
   drawRocket();
-
+  moveGround();
 }
 
 function drawScene() {
   noStroke();
-  background("#5A89FF");
+  fill("#5A89FF");
+  rect(0, 0, canvas.width, canvas.height);
 }
 
 function drawStage() {
-  noStroke();
-  fill("black");
-  rect(rocket.left, stageHeight, 100, 50, 10);
+  fill("green");
+  rect(0, background.grassHeight - 100, canvas.width, 100);
   fill("gray");
-  rect(0, 400, canvas.width, 100);
+  rect(0, background.grassHeight - 25, canvas.width, 25);
+  fill("black");
+  rect(0, background.grassHeight - 15, canvas.width, 15);
+  fill("gray");
+  rect(0, background.grassHeight - 10, canvas.width, 15);
 }
 
 function drawRocket() {
@@ -44,6 +51,7 @@ function drawRocket() {
   fill("white");
   ellipse(canvas.halfWidth, 200, 157, 250);
   fill("red");
+  //top triangle
   triangle(
     rocket.left,
     rocket.height,
@@ -52,31 +60,37 @@ function drawRocket() {
     canvas.halfWidth,
     rocket.height - 50
   );
+  //left triangle
   triangle(
     rocket.left,
-    stageHeight,
+    background.stageHeight,
     rocket.left,
     rocket.bottom,
     rocket.left - 50,
-    stageHeight
+    background.stageHeight
   );
-   triangle(
+  //right triangle
+  triangle(
     rocket.right,
-    stageHeight,
+    background.stageHeight,
     rocket.right,
     rocket.bottom,
     rocket.right + 50,
-    stageHeight
+    background.stageHeight
   );
   rect(
     rocket.left,
     rocket.bottom - 3,
-    (rocket.right - rocket.left),
+    rocket.right - rocket.left,
     rocket.height - 25
   );
-
+  fill("blue");
+  strokeWeight(3);
+  ellipse(canvas.halfWidth, rocket.height + 50, 70);
+  noStroke();
+  fill("black");
+  rect(rocket.left, background.stageHeight, 100, 50, 10);
 }
-
 
 function drawCloud(x, y) {
   fill("white");
@@ -96,12 +110,35 @@ function drawCloud(x, y) {
 }
 
 function drawMultipleClouds(x) {
-  //need to figure out how to move it
-  drawCloud((100 + x) % canvas.width, 160);
-  drawCloud((300 + x) % canvas.width, 100);
-  drawCloud((250 + x) % canvas.width, -50);
-  drawCloud((410 + x) % canvas.width, 200);
-  drawCloud((560 + x) % canvas.width, -80);
-  drawCloud((670 + x) % canvas.width, 155);
-  drawCloud((870 + x) % canvas.width, 55);
+  movingValue.clouds =
+    (movingValue.clouds + increasingSpeed.clouds * x) % canvas.width;
+
+  if (movingValue.clouds > 0) {
+    drawCloud(100, 160 + movingValue.clouds);
+    drawCloud(300, 100 + movingValue.clouds);
+    drawCloud(250, -50 + movingValue.clouds);
+    drawCloud(410, 200 + movingValue.clouds);
+    drawCloud(560, -80 + movingValue.clouds);
+    drawCloud(670, 155 + movingValue.clouds);
+    drawCloud(870, 55 + movingValue.clouds);
+  }
+}
+
+function drawFlames() {
+  //outer flame
+  fill("red");
+  ellipse(canvas.halfWidth, background.stageHeight + 50, 90, 80);
+  //middle flame
+  fill("orange");
+  ellipse(canvas.halfWidth, background.stageHeight + 50, 70, 40);
+  //inner flame
+  fill("yellow");
+  ellipse(canvas.halfWidth, background.stageHeight + 50, 50, 20);
+}
+
+function moveGround() {
+  background.grassHeight = background.grassHeight + 0.5;
+  if (background.grassHeight - 100 > canvas.height) {
+    cloud.speed = 0.5;
+  }
 }
